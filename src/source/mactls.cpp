@@ -49,7 +49,7 @@ static void make_heap_key() {
 static bool initializedTSD = false;
 
 static bool initTSD() {
-  if (!initializedTSD) {
+  if (unlikely(!initializedTSD)) {
     // Ensure that the key is initialized -- once.
     pthread_once(&key_once, make_heap_key);
     initializedTSD = true;
@@ -64,7 +64,7 @@ bool isCustomHeapInitialized() {
 static TheCustomHeapType * initializeCustomHeap() {
   TheCustomHeapType * heap =
     reinterpret_cast<TheCustomHeapType *>(pthread_getspecific(theHeapKey));
-  if (heap == nullptr) {
+  if (unlikely(heap == nullptr)) {
     // Defensive programming in case this is called twice.
     // Allocate a per-thread heap.
     size_t sz = sizeof(TheCustomHeapType);
@@ -81,7 +81,7 @@ TheCustomHeapType * getCustomHeap() {
   // Allocate a per-thread heap.
   TheCustomHeapType * heap =
     reinterpret_cast<TheCustomHeapType *>(pthread_getspecific(theHeapKey));
-  if (heap == nullptr)  {
+  if (unlikely(heap == nullptr)) {
     heap = initializeCustomHeap();
   }
   return heap;

@@ -87,7 +87,7 @@ static TheCustomHeapType * initializeCustomHeap() __attribute__((constructor));
 
 static TheCustomHeapType * initializeCustomHeap() {
   auto tlab = theTLAB;
-  if (tlab == nullptr) {
+  if (unlikely(tlab == nullptr)) {
     new (reinterpret_cast<char *>(&tlabBuffer)) TheCustomHeapType(getMainHoardHeap());
     tlab = reinterpret_cast<TheCustomHeapType *>(&tlabBuffer);
     theTLAB = tlab;
@@ -98,13 +98,13 @@ static TheCustomHeapType * initializeCustomHeap() {
 // Get the TLAB.
 
 bool isCustomHeapInitialized() {
-  return (theTLAB != nullptr);
+  return (likely(theTLAB != nullptr));
 }
 
 TheCustomHeapType * getCustomHeap() {
   // The pointer to the TLAB itself.
   auto tlab = theTLAB;
-  if (tlab == nullptr) {
+  if (unlikely(tlab == nullptr)) {
     tlab = initializeCustomHeap();
     theTLAB = tlab;
   }
@@ -135,6 +135,7 @@ static void deleteThatHeap(void * p) {
 
 static void make_heap_key() {
   if (pthread_key_create(&theHeapKey, deleteThatHeap) != 0) {
+  	unreachable();
     // This should never happen.
   }
 }
@@ -144,7 +145,7 @@ static void initTSD() __attribute__((constructor));
 static bool initializedTSD = false;
 
 static void initTSD() {
-  if (!initializedTSD) {
+  if (unlikely(!initializedTSD)) {
     // Ensure that the key is initialized -- once.
     pthread_once(&key_once, make_heap_key);
     initializedTSD = true;
@@ -170,7 +171,7 @@ TheCustomHeapType * getCustomHeap() {
   TheCustomHeapType * heap;
   initTSD();
   heap = reinterpret_cast<TheCustomHeapType *>(pthread_getspecific(theHeapKey));
-  if (heap == nullptr) {
+  if (unlikely(heap == nullptr)) {
     heap = initializeCustomHeap();
   }
   return heap;
@@ -273,7 +274,7 @@ extern "C" int thr_create (void * stack_base,
   static thr_create_function real_thr_create =
     (thr_create_function) dlsym (RTLD_NEXT, fname);
 
-  if (real_thr_create == nullptr) {
+  if (unlikely(real_thr_create == nullptr)) {
     // Error. Must fail.
     cerr << "Failure at startup: " << dlerror() << endl;
     abort();
@@ -307,7 +308,7 @@ extern "C" void thr_exit (void * value_ptr) {
   static thr_exit_function real_thr_exit =
     reinterpret_cast<thr_exit_function>(dlsym (RTLD_NEXT, fname));
 
-  if (real_thr_exit == nullptr) {
+  if (unlikely(real_thr_exit == nullptr)) {
     // Error. Must fail.
     cerr << "Unable to find " << fname << " : " << dlerror() << endl;
     abort();
@@ -358,7 +359,8 @@ extern "C" int pthread_create (pthread_t *thread,
 #endif
 {
   // Force initialization of the TLAB before our first thread is created.
-  static volatile TheCustomHeapType * t = initializeCustomHeap();
+  //static volatile TheCustomHeapType * t = initializeCustomHeap();
+  initializeCustomHeap();
 
 #if defined(__linux__) || defined(__APPLE__)
   char fname[] = "pthread_create";

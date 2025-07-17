@@ -115,15 +115,6 @@ extern "C" {
     if (initBufferPtr > initBuffer + MAX_LOCAL_BUFFER_SIZE) {
       abort();
     }
-    {
-      static bool initialized = false;
-      if (!initialized) {
-	initialized = true;
-#if !defined(_WIN32)
-	/* fprintf(stderr, versionMessage); */
-#endif
-      }
-    }
     return ptr;
   }
 
