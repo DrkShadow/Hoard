@@ -1,8 +1,8 @@
 # Commands to compile Hoard for various targets.
 # Run make (with no arguments) to see the complete target list.
 
-CPPFLAGS = -std=c++14 -flto -O3 -DNDEBUG -ffast-math -fno-builtin-malloc -Wall -Wextra -Wshadow -Wconversion -Wuninitialized # -DHL_NO_MALLOC_SIZE_CHECKS=1
-CPPFLAGS_NOLTO = -std=c++14 -O3 -DNDEBUG -ffast-math -fno-builtin-malloc -Wall -Wextra -Wshadow -Wconversion -Wuninitialized # -DHL_NO_MALLOC_SIZE_CHECKS=1
+CPPFLAGS = -fprofile-arcs -std=c++14 -flto=auto -O3 -march=native -DNDEBUG -ffast-math -fno-builtin-malloc -Wall -Wextra -Wshadow -Wconversion -Wuninitialized # -DHL_NO_MALLOC_SIZE_CHECKS=1
+CPPFLAGS_NOLTO = -fprofile-arcs -std=c++14 -O3 -march=native -DNDEBUG -ffast-math -fno-builtin-malloc -Wall -Wextra -Wshadow -Wconversion -Wuninitialized # -DHL_NO_MALLOC_SIZE_CHECKS=1
 #CPPFLAGS = -std=c++14 -g -O0 -ffast-math -fno-builtin-malloc -Wall -Wextra -Wshadow -Wconversion -Wuninitialized
 CXX ?= clang++
 
